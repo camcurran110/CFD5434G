@@ -497,21 +497,31 @@ void bndry( Array3& u )
 
     for( j=1; j<jmax-1; j++)
     {
+        /* Left wall */
         i = 0;
-        u(i,j,0) = 0; /* Defines left wall as 0 u velocity */
-
-        i = imax;
-        u(i,j,0) = 0; /* Defines right wall as 0 u velocity */
+        u(i,j,0) = 2*u(1,j,0) - u(2,j,0); /* Defines pressure gradient at left wall*/
+        u(i,j,1) = 0; /* Defines left wall as 0 u velocity */
+        u(i,j,2) = 0; /* Defines left wall as 0 v velocity */
+        /* Right wall */
+        i = imax-1;
+        u(i,j,0) = 2*u(imax-2,j,0) - u(imax-3,j,0); /* Defines pressure gradient at right wall */
+        u(i,j,1) = 0; /* Defines right wall as 0 u velocity */
+        u(i,j,2) = 0; /* Defines right wall as 0 v velocity */
     }
     
     for( i = 1; i<imax-1; i++)
     {
+        /* Bottom wall */
         j = 0;
-        u(i,j,0) = 0; /* Defines bottom row as 0 u velocity */
+        u(i,j,0) = 2*u(i,1,0) - u(i,2,0); /* Defines pressure gradient at bottom */
+        u(i,j,1) = 0; /* Defines bottom row as 0 u velocity */
+        u(i,j,2) = 0; /* Defines bottom row as 0 v velocity */
+        /* Top wall */
+        j = jmax-1;
+        u(i,j,0) = 2*u(i,jmax-2,0) - u(i,jmax-3,0); /* Defines pressure gradient at top */
+        u(i,j,1) = uinf; /* Defines top row u velocity as lid velocity */
+        u(i,j,2) = 0; /* Defines top row as 0 v velocity */
     }
-
-    /* I don't think pressure should be modified here */
-
 
 }
 
