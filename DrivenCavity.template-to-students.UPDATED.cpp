@@ -491,13 +491,26 @@ void bndry( Array3& u )
     /* This applies the cavity boundary conditions */
 
 
-/* !************************************************************** */
-/* !************ADD CODING HERE FOR INTRO CFD STUDENTS************ */
-/* !************************************************************** */
+    /* !************************************************************** */
+    /* !************ADD CODING HERE FOR INTRO CFD STUDENTS************ */
+    /* !************************************************************** */
 
-/* Testing GitHub integration*/
-/* Adding a comment to test branching*/
-/* Test successful*/
+    for( j=1; j<jmax-1; j++)
+    {
+        i = 0;
+        u(i,j,0) = 0; /* Defines left wall as 0 u velocity */
+
+        i = imax;
+        u(i,j,0) = 0; /* Defines right wall as 0 u velocity */
+    }
+    
+    for( i = 1; i<imax-1; i++)
+    {
+        j = 0;
+        u(i,j,0) = 0; /* Defines bottom row as 0 u velocity */
+    }
+
+    /* I don't think pressure should be modified here */
 
 
 }
