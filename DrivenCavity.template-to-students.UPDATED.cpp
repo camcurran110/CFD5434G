@@ -511,7 +511,7 @@ void bndry( Array3& u )
         u(i,j,2) = 0; /* Defines right wall as 0 v velocity */
     }
     
-    for( i=1; i<imax-1; i++)
+    for( i=0; i<imax; i++)
     {
         /* Bottom wall */
         j = 0;
@@ -876,10 +876,34 @@ void compute_time_step( Array3& u, Array2& dt, double& dtmin )
     double lambda_max;      //Max absolute value eigenvalue (used in convective time step computation)
     double dtconv;          //Local convective time step restriction
 
-/* !************************************************************** */
-/* !************ADD CODING HERE FOR INTRO CFD STUDENTS************ */
-/* !************************************************************** */
+    /* !************************************************************** */
+    /* !************ADD CODING HERE FOR INTRO CFD STUDENTS************ */
+    /* !************************************************************** */
 
+    /* Should be nesting j loops inside of i loops in Cpp*/
+
+    for( i=1; i<imax-2; i++)
+    {
+        for( j=1; j<jmax-2;j++)
+        {
+            double nu = (rmu/rho); /* Is this where this should be? */
+            dtvisc = (dx*dy)/(4*nu);
+            uvel2 = (u(i,j,1)*u(i,j,1)) + u(i,j,2)*u(i,j,2);
+            beta2 = max((uvel2),(rkappa*vel2ref));
+            lambda_x = (1/2)*(abs(u(i,j,1)) + sqrt(u(i,j,1)*u(i,j,1) + 4*beta2)); /* Should I be using "half"? */
+            lambda_y = (1/2)*(abs(u(i,j,2)) + sqrt(u(i,j,2)*u(i,j,2) + 4*beta2));
+            lambda_max = max(lambda_x,lambda_y);
+            dtconv = 0;
+
+            /* To modify*/
+            dt(i,j) = cfl*min(dtvisc,dtconv); /* This should be dt_d and dt_c*/
+            /* (Diffusive and convective)*/
+            dtmin = min(dt(i,j),dtmin); /* Where does dtmin come from */
+            
+        }
+        
+    }
+        
 
 
 }  
@@ -905,10 +929,28 @@ void Compute_Artificial_Viscosity( Array3& u, Array2& viscx, Array2& viscy )
     double d4pdx4;      //4th derivative of pressure w.r.t. x
     double d4pdy4;      //4th derivative of pressure w.r.t. y
 
-/* !************************************************************** */
-/* !************ADD CODING HERE FOR INTRO CFD STUDENTS************ */
-/* !************************************************************** */
+    /* !************************************************************** */
+    /* !************ADD CODING HERE FOR INTRO CFD STUDENTS************ */
+    /* !************************************************************** */
 
+    /* The fourth order equation cannot reach out of bounds */
+    for(i=2; i<imax-3; i++) /* Interior points w/o out of bounds issues */
+    {
+        for(j=2; j<jmax-3;j++)
+        {
+            (u(i+2,j,0) - 4*u(i+1,j,0) + 6*u(i,j,0) - 4*u(i-1,j,0) + u(i-2,j,0))/(dx*dx*dx*dx);
+            (u(i,j+2,0) - 4*u(i,j+1,0) + 6*u(i,j,0) - 4*u(i,j-1,0) + u(i,j-2,0))/(dy*dy*dy*dy);
+
+            /* Need to compute d4pdx4*/
+            beta2 = max((uvel2),(rkappa*vel2ref));
+            lambda_x = (1/2)*(abs(u(i,j,1)) + sqrt(u(i,j,1)*u(i,j,1) + 4*beta2)); 
+            lambda_y = (1/2)*(abs(u(i,j,2)) + sqrt(u(i,j,2)*u(i,j,2) + 4*beta2));
+
+            viscx(i,j) = (d4pdx4)*(-abs(lambda_x)*Cx*(dx*dx*dx))/beta2;
+            viscy(i,j) = (d4pdy4)*(-abs(lambda_y)*Cy*(dy*dy*dy))/beta2;
+        }
+        
+    }
 
 
 }
@@ -941,9 +983,9 @@ void SGS_forward_sweep( Array3& u, Array2& viscx, Array2& viscy, Array2& dt, Arr
 
     /* Symmetric Gauss-Siedel: Forward Sweep */
 
-/* !************************************************************** */
-/* !************ADD CODING HERE FOR INTRO CFD STUDENTS************ */
-/* !************************************************************** */
+    /* !************************************************************** */
+    /* !************ADD CODING HERE FOR INTRO CFD STUDENTS************ */
+    /* !************************************************************** */
 
 
 
@@ -1014,16 +1056,39 @@ void point_Jacobi( Array3& u, Array3& uold, Array2& viscx, Array2& viscy, Array2
     double uvel2;       //Velocity squared at node
     double beta2;       //Beta squared parameter for time derivative preconditioning
 
+    int i;
+    int j;
     /* Point Jacobi method */
 
 
-/* !************************************************************** */
-/* !************ADD CODING HERE FOR INTRO CFD STUDENTS************ */
-/* !************************************************************** */
+    /* !************************************************************** */
+    /* !************ADD CODING HERE FOR INTRO CFD STUDENTS************ */
+    /* !************************************************************** */
 
+    for (i=1;i<imax-1;i++)
+    {
+        for (j=1;j<jmax-1;j++)
+        {
+            dpdx = (uold(i+1,j,0) - uold(i-1,j,0)) / (2*dx);
+            dudx = (uold(i+1,j,1) - uold(i-1,j,1)) / (2*dx);
+            dvdx = (uold(i+1,j,2) - uold(i-1,j,2)) / (2*dx);
+            dpdy = (uold(i,j+1,0) - uold(i,j+1,0)) / (2*dy);
+            dudy = (uold(i,j+1,1) - uold(i,j+1,1)) / (2*dy);
+            dvdy = (uold(i,j+1,2) - uold(i,j+1,2)) / (2*dy);
+            d2udx2 = (uold(i+1,j,1)  - 2*uold(i,j,1) + uold(i-1,j,1)) / (dx*dx);
+            d2vdx2 = (uold(i+1,j,2)  - 2*uold(i,j,2) + uold(i-1,j,2)) / (dx*dx);
+            d2udy2 = (uold(i,j+1,1)  - 2*uold(i,j,1) + uold(i,j-1,1)) / (dy*dy);
+            d2vdy2 = (uold(i,j+1,2)  - 2*uold(i,j,2) + uold(i,j-1,2)) / (dy*dy);
+            uvel2 = uold(i,j,1)*uold(i,j,1) + uold(i,j,2)*uold(i,j,2);
+            beta2 = max(uvel2,rkappa*vel2ref);
 
-
-
+            u(i,j,0) = uold(i,j,0) - beta2*dt(i,j)*((rho*dudx) + (rho*dvdy) - viscx(i,j) - viscy(i,j) - s(i,j,0));
+            u(i,j,1) = uold(i,j,1) - dt(i,j)*rhoinv*((rho*uold(i,j,1)*dudx) + (rho*uold(i,j,2)*dudy) + dpdx - (rmu*d2udx2) - (rmu*d2udy2) - s(i,j,1));
+            u(i,j,2) = uold(i,j,2) - dt(i,j)*rhoinv*((rho*uold(i,j,1)*dvdx) + (rho*uold(i,j,2)*dvdy) + dpdy - (rmu*d2vdx2) - (rmu*d2vdy2) - s(i,j,2));
+        }
+        
+    }
+    
 }
 
 /**************************************************************************/
@@ -1085,9 +1150,9 @@ void check_iterative_convergence(int n, Array3& u, Array3& uold, Array2& dt, dou
     res[1] = zero;
     res[2] = zero;
 
-/* !************************************************************** */
-/* !************ADD CODING HERE FOR INTRO CFD STUDENTS************ */
-/* !************************************************************** */
+    /* !************************************************************** */
+    /* !************ADD CODING HERE FOR INTRO CFD STUDENTS************ */
+    /* !************************************************************** */
 
 
 
