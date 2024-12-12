@@ -884,20 +884,21 @@ void compute_time_step( Array3& u, Array2& dt, double& dtmin )
 
     /* Should be done */
 
-    /* Should be nesting j loops inside of i loops in Cpp*/
+    /* Should be nesting j loops inside of i loops in Cpp */
+    double nu = rmu/rho;
 
     for( i=1; i<imax-1; i++)
     {
         for( j=1; j<jmax-1;j++)
         {
-            double nu = (rmu/rho);
-            dtvisc = (dx*dy)/(4*nu);
+            /* double nu = (rmu/rho); */
+            dtvisc = (dx*dy)/(4*nu); /* Should I pull this out of the loop? */
             uvel2 = (u(i,j,1)*u(i,j,1)) + u(i,j,2)*u(i,j,2);
             beta2 = max((uvel2),(rkappa*vel2ref));
             lambda_x = (1/2)*(abs(u(i,j,1)) + sqrt(u(i,j,1)*u(i,j,1) + 4*beta2)); /* Should I be using "half"? */
             lambda_y = (1/2)*(abs(u(i,j,2)) + sqrt(u(i,j,2)*u(i,j,2) + 4*beta2));
             lambda_max = max(lambda_x,lambda_y);
-            dtconv = 0;
+            dtconv = min(dx,dy)/abs(lambda_max);
 
             /* To modify*/
             dt(i,j) = cfl*min(dtvisc,dtconv); /* This should be dt_d and dt_c*/
@@ -942,8 +943,8 @@ void Compute_Artificial_Viscosity( Array3& u, Array2& viscx, Array2& viscy )
     {
         for(j=2; j<jmax-3;j++)
         {
-            (u(i+2,j,0) - 4*u(i+1,j,0) + 6*u(i,j,0) - 4*u(i-1,j,0) + u(i-2,j,0))/(dx*dx*dx*dx);
-            (u(i,j+2,0) - 4*u(i,j+1,0) + 6*u(i,j,0) - 4*u(i,j-1,0) + u(i,j-2,0))/(dy*dy*dy*dy);
+            d4pdx4 = (u(i+2,j,0) - 4*u(i+1,j,0) + 6*u(i,j,0) - 4*u(i-1,j,0) + u(i-2,j,0))/(dx*dx*dx*dx);
+            d4pdy4 = (u(i,j+2,0) - 4*u(i,j+1,0) + 6*u(i,j,0) - 4*u(i,j-1,0) + u(i,j-2,0))/(dy*dy*dy*dy);
 
             /* Need to compute d4pdx4*/
             beta2 = max((uvel2),(rkappa*vel2ref));
@@ -1056,9 +1057,11 @@ void SGS_forward_sweep( Array3& u, Array2& viscx, Array2& viscy, Array2& dt, Arr
     /* !************ADD CODING HERE FOR INTRO CFD STUDENTS************ */
     /* !************************************************************** */
 
-    dpdx;
-    dudx;  
-    dvdx; 
+    /* Add loops */
+
+    dpdx = (u(i+1,j,0) - u(i-1,j,0)) / (2*dx);
+    dudx = (u(i+1,j,1) - u(i-1,j,1)) / (2*dx);
+    dvdx = (u(i+1,j,2) - u(i-1,j,2)) / (2*dx); 
     dpdy; 
     dudy;     
     dvdy;    
