@@ -495,6 +495,8 @@ void bndry( Array3& u )
     /* !************ADD CODING HERE FOR INTRO CFD STUDENTS************ */
     /* !************************************************************** */
 
+    /* I'm  going to include the corners on the top/bottoms */
+
     for( j=1; j<jmax-1; j++)
     {
         /* Left wall */
@@ -509,7 +511,7 @@ void bndry( Array3& u )
         u(i,j,2) = 0; /* Defines right wall as 0 v velocity */
     }
     
-    for( i = 1; i<imax-1; i++)
+    for( i=1; i<imax-1; i++)
     {
         /* Bottom wall */
         j = 0;
