@@ -1037,7 +1037,10 @@ void SGS_forward_sweep( Array3& u, Array2& viscx, Array2& viscy, Array2& dt, Arr
     Uses: artviscx, artviscy, dt, s
     To Modify: u
     */
- 
+    int i;
+    int j;
+
+    
     double dpdx;        //First derivative of pressure w.r.t. x
     double dudx;        //First derivative of x velocity w.r.t. x
     double dvdx;        //First derivative of y velocity w.r.t. x
@@ -1058,6 +1061,8 @@ void SGS_forward_sweep( Array3& u, Array2& viscx, Array2& viscy, Array2& dt, Arr
     /* !************************************************************** */
 
     /* Add loops */
+    i = 1;
+    j = 1;
 
     dpdx = (u(i+1,j,0) - u(i-1,j,0)) / (2*dx);
     dudx = (u(i+1,j,1) - u(i-1,j,1)) / (2*dx);
