@@ -495,6 +495,8 @@ void bndry( Array3& u )
     /* !************ADD CODING HERE FOR INTRO CFD STUDENTS************ */
     /* !************************************************************** */
 
+    /* Should be complete */
+
     /* I'm  going to include the corners on the top/bottoms */
 
     for( j=1; j<jmax-1; j++)
@@ -880,13 +882,15 @@ void compute_time_step( Array3& u, Array2& dt, double& dtmin )
     /* !************ADD CODING HERE FOR INTRO CFD STUDENTS************ */
     /* !************************************************************** */
 
+    /* Should be done */
+
     /* Should be nesting j loops inside of i loops in Cpp*/
 
-    for( i=1; i<imax-2; i++)
+    for( i=1; i<imax-1; i++)
     {
-        for( j=1; j<jmax-2;j++)
+        for( j=1; j<jmax-1;j++)
         {
-            double nu = (rmu/rho); /* Is this where this should be? */
+            double nu = (rmu/rho);
             dtvisc = (dx*dy)/(4*nu);
             uvel2 = (u(i,j,1)*u(i,j,1)) + u(i,j,2)*u(i,j,2);
             beta2 = max((uvel2),(rkappa*vel2ref));
@@ -898,7 +902,7 @@ void compute_time_step( Array3& u, Array2& dt, double& dtmin )
             /* To modify*/
             dt(i,j) = cfl*min(dtvisc,dtconv); /* This should be dt_d and dt_c*/
             /* (Diffusive and convective)*/
-            dtmin = min(dt(i,j),dtmin); /* Where does dtmin come from */
+            dtmin = min(dt(i,j),dtmin); 
             
         }
         
@@ -951,7 +955,72 @@ void Compute_Artificial_Viscosity( Array3& u, Array2& viscx, Array2& viscy )
         }
         
     }
+    /* Other conditions needed: 4 corners, left wall & right wall, top & bottom */
+    /* Bottom left */
+    i=1;
+    j=1;
 
+    d4pdx4 = (u(i-1,j,0) - 4*u(i,j,0) + 6*u(i+1,j,0) - 4*u(i+2,j,0) + u(i+3,j,0))/dx;
+    d4pdy4 = (u(i,j-1,0) - 4*u(i,j,0) + 6*u(i,j+1,0) - 4*u(i,j+2,0) + u(i,j+3,0))/dy;
+
+    viscx(1,1) = (d4pdx4)*(-abs(lambda_x)*Cx*(dx*dx*dx))/beta2;
+    viscy(1,1) = (d4pdy4)*(-abs(lambda_y)*Cy*(dy*dy*dy))/beta2;
+
+    /* Top left */
+    i=1;
+    j=jmax-2;
+
+    d4pdx4 = (u(i-1,j,0) - 4*u(i,j,0) + 6*u(i+1,j,0) - 4*u(i+2,j,0) + u(i+3,j,0))/dx;
+    d4pdy4 = (u(i,j-3,0) - 4*u(i,j-2,0) + 6*u(i,j-1,0) - 4*u(i,j,0) + u(i,j+1,0))/dy;
+
+    viscx(1,jmax-2) = (d4pdx4)*(-abs(lambda_x)*Cx*(dx*dx*dx))/beta2;
+    viscy(1,jmax-2) = (d4pdy4)*(-abs(lambda_y)*Cy*(dy*dy*dy))/beta2;
+
+    /* Bottom right */
+    i=imax-2;
+    j=1;
+
+    d4pdx4 = (u(i-3,j,0) - 4*u(i-2,j,0) + 6*u(i-1,j,0) - 4*u(i,j,0) + u(i+1,j,0))/dx;
+    d4pdy4 = (u(i,j-1,0) - 4*u(i,j,0) + 6*u(i,j+1,0) - 4*u(i,j+2,0) + u(i,j+3,0))/dy;
+
+    viscx(imax-2,1) = (d4pdx4)*(-abs(lambda_x)*Cx*(dx*dx*dx))/beta2;
+    viscy(imax-2,1) = (d4pdy4)*(-abs(lambda_y)*Cy*(dy*dy*dy))/beta2;
+
+    /* Top right */
+
+    i=imax-2;
+    j=jmax-2;
+
+    d4pdx4 = (u(i-3,j,0) - 4*u(i-2,j,0) + 6*u(i-1,j,0) - 4*u(i,j,0) + u(i+1,j,0))/dx;
+    d4pdy4 = (u(i,j-3,0) - 4*u(i,j-2,0) + 6*u(i,j-1,0) - 4*u(i,j,0) + u(i,j+1,0))/dy;
+
+    viscx(imax-2,jmax-2) = (d4pdx4)*(-abs(lambda_x)*Cx*(dx*dx*dx))/beta2;
+    viscy(imax-2,jmax-2) = (d4pdy4)*(-abs(lambda_y)*Cy*(dy*dy*dy))/beta2;
+
+    for (j=2;j<jmax-1;j++)
+    {
+        /* Left wall */
+        i = 2;
+        d4pdx4 = (u(i-1,j,0) - 4*u(i,j,0) + 6*u(i+1,j,0) - 4*u(i+2,j,0) + u(i+3,j,0))/dx;
+        d4pdy4 = (u(i,j-2,0) - 4*u(i,j-1,0) + 6*u(i,j,0) - 4*u(i,j+1,0) + u(i,j+2,0))/dy;
+        /* Right wall */
+        i = imax-2;
+        d4pdx4 = (u(i-3,j,0) - 4*u(i-2,j,0) + 6*u(i-1,j,0) - 4*u(i,j,0) + u(i+1,j,0))/dx;
+        d4pdy4 = (u(i,j-2,0) - 4*u(i,j-1,0) + 6*u(i,j,0) - 4*u(i,j+1,0) + u(i,j+2,0))/dy;
+    }
+    
+    /* Bottom and top wall */
+    for (i=2;i<imax-1;i++)
+    {
+        /* Bottom wall */
+        j = 2;
+        d4pdx4 = (u(i-2,j,0) - 4*u(i-1,j,0) + 6*u(i,j,0) - 4*u(i+1,j,0) + u(i+2,j,0))/dx;
+        d4pdy4 = (u(i,j-1,0) - 4*u(i,j,0) + 6*u(i,j+1,0) - 4*u(i,j+2,0) + u(i,j+3,0))/dy;
+        /* Top wall */
+        j = jmax-2;
+        d4pdx4 = (u(i-2,j,0) - 4*u(i-1,j,0) + 6*u(i,j,0) - 4*u(i+1,j,0) + u(i+2,j,0))/dx;
+        d4pdy4 = (u(i,j-3,0) - 4*u(i,j-2,0) + 6*u(i,j-1,0) - 4*u(i,j,0) + u(i,j+1,0))/dy;
+    }
 
 }
 
@@ -987,7 +1056,18 @@ void SGS_forward_sweep( Array3& u, Array2& viscx, Array2& viscy, Array2& dt, Arr
     /* !************ADD CODING HERE FOR INTRO CFD STUDENTS************ */
     /* !************************************************************** */
 
-
+    dpdx;
+    dudx;  
+    dvdx; 
+    dpdy; 
+    dudy;     
+    dvdy;    
+    d2udx2;      
+    d2vdx2;      
+    d2udy2; 
+    d2vdy2;      
+    uvel2;
+    beta2;
 
 
 }
@@ -1064,6 +1144,8 @@ void point_Jacobi( Array3& u, Array3& uold, Array2& viscx, Array2& viscy, Array2
     /* !************************************************************** */
     /* !************ADD CODING HERE FOR INTRO CFD STUDENTS************ */
     /* !************************************************************** */
+
+    /* SHOULD BE DONE */
 
     for (i=1;i<imax-1;i++)
     {
