@@ -988,7 +988,7 @@ void Compute_Artificial_Viscosity( Array3& u, Array2& viscx, Array2& viscy )
     viscx(1,1) = (d4pdx4)*(-abs(lambda_x)*Cx*(dx*dx*dx))/beta2;
     viscy(1,1) = (d4pdy4)*(-abs(lambda_y)*Cy*(dy*dy*dy))/beta2;
 
-    /* Top */
+    /* Top Left */
     i=1;
     j=jmax-2;
 
@@ -1029,6 +1029,8 @@ void Compute_Artificial_Viscosity( Array3& u, Array2& viscx, Array2& viscy )
         i = imax-2;
         d4pdx4 = (u(i-3,j,0) - 4*u(i-2,j,0) + 6*u(i-1,j,0) - 4*u(i,j,0) + u(i+1,j,0))/dx;
         d4pdy4 = (u(i,j-2,0) - 4*u(i,j-1,0) + 6*u(i,j,0) - 4*u(i,j+1,0) + u(i,j+2,0))/dy;
+
+        /*  VISC HERE */
     }
     
     /* Bottom and top wall */
@@ -1042,6 +1044,7 @@ void Compute_Artificial_Viscosity( Array3& u, Array2& viscx, Array2& viscy )
         j = jmax-2;
         d4pdx4 = (u(i-2,j,0) - 4*u(i-1,j,0) + 6*u(i,j,0) - 4*u(i+1,j,0) + u(i+2,j,0))/dx;
         d4pdy4 = (u(i,j-3,0) - 4*u(i,j-2,0) + 6*u(i,j-1,0) - 4*u(i,j,0) + u(i,j+1,0))/dy;
+        /* VISC HERE */
     }
 
 }
@@ -1103,9 +1106,9 @@ void SGS_forward_sweep( Array3& u, Array2& viscx, Array2& viscy, Array2& dt, Arr
             uvel2 = (u(i,j,1)*u(i,j,1)) + (u(i,j,2)*u(i,j,2));
             beta2 = max(uvel2,rkappa*vel2ref);
 
-            u(i,j,0) = u(i,j,0) - (beta2*dt(i,j)*((rho*dudx) + (rho*dvdy) - viscx(i,j) - viscy(i,j)-s(i,j,0)));
+            u(i,j,0) = u(i,j,0) - (beta2*dt(i,j)*((rho*dudx) + (rho*dvdy) - viscx(i,j) - viscy(i,j) - s(i,j,0)));
             u(i,j,1) = u(i,j,1) - (dt(i,j)*rhoinv*((rho*u(i,j,1)*dudx) + (rho*u(i,j,2)*dudy) + dpdx-(rmu*d2udx2) - (rmu*d2udy2) - s(i,j,1)));
-            u(i,j,2) = u(i,j,2) - (dt(i,j)*rhoinv*((rho*u(i,j,1)*dvdx) + (rho*u(i,j,2)*dvdy)+dpdy - (rmu*d2vdx2) - (rmu*d2vdy2) - s(i,j,2)));                          
+            u(i,j,2) = u(i,j,2) - (dt(i,j)*rhoinv*((rho*u(i,j,1)*dvdx) + (rho*u(i,j,2)*dvdy) + dpdy - (rmu*d2vdx2) - (rmu*d2vdy2) - s(i,j,2)));                          
         }
     }
 
@@ -1168,8 +1171,8 @@ void SGS_backward_sweep( Array3& u, Array2& viscx, Array2& viscy, Array2& dt, Ar
             beta2 = max(uvel2,rkappa*vel2ref);
 
             u(i,j,0) = u(i,j,0) - (beta2*dt(i,j)*((rho*dudx) + (rho*dvdy) - viscx(i,j) - viscy(i,j)-s(i,j,0)));
-            u(i,j,1) = u(i,j,1) - (dt(i,j)*rhoinv*((rho*u(i,j,1)*dudx) + (rho*u(i,j,2)*dudy) + dpdx - (rmu*d2udx2) - (rmu*d2udy2) - s(i,j,1)));
-            u(i,j,2) = u(i,j,2) - (dt(i,j)*rhoinv*((rho*u(i,j,1)*dvdx) + (rho*u(i,j,2)*dvdy) + dpdy - (rmu*d2vdx2) - (rmu*d2vdy2) - s(i,j,2)));                          
+            u(i,j,1) = u(i,j,1) - (dt(i,j)*rhoinv*((rho*u(i,j,1)*dudx) + rho*u(i,j,2)*dudy + dpdx - rmu*d2udx2 - rmu*d2udy2 - s(i,j,1)));
+            u(i,j,2) = u(i,j,2) - (dt(i,j)*rhoinv*((rho*u(i,j,1)*dvdx) + rho*u(i,j,2)*dvdy + dpdy - rmu*d2vdx2 - rmu*d2vdy2 - s(i,j,2)));                          
         }
     }
 
@@ -1215,6 +1218,7 @@ void point_Jacobi( Array3& u, Array3& uold, Array2& viscx, Array2& viscy, Array2
     /* dpdx is definition */
     /* 2nd deriv equation : */
     /* note that uvel2 is at node and is the old value */
+
     for (i=1;i<imax-1;i++)
     {
         for (j=1;j<jmax-1;j++)
@@ -1233,8 +1237,8 @@ void point_Jacobi( Array3& u, Array3& uold, Array2& viscx, Array2& viscy, Array2
             beta2 = max(uvel2,rkappa*vel2ref);
 
             u(i,j,0) = uold(i,j,0) - beta2*dt(i,j)*((rho*dudx) + (rho*dvdy) - viscx(i,j) - viscy(i,j) - s(i,j,0));
-            u(i,j,1) = uold(i,j,1) - dt(i,j)*rhoinv*((rho*uold(i,j,1)*dudx) + (rho*uold(i,j,2)*dudy) + dpdx - (rmu*d2udx2) - (rmu*d2udy2) - s(i,j,1));
-            u(i,j,2) = uold(i,j,2) - dt(i,j)*rhoinv*((rho*uold(i,j,1)*dvdx) + (rho*uold(i,j,2)*dvdy) + dpdy - (rmu*d2vdx2) - (rmu*d2vdy2) - s(i,j,2));
+            u(i,j,1) = uold(i,j,1) - dt(i,j)*rhoinv*((rho*uold(i,j,1)*dudx) + (rho*uold(i,j,2)*dudy) + dpdx - rmu*d2udx2 - rmu*d2udy2 - s(i,j,1));
+            u(i,j,2) = uold(i,j,2) - dt(i,j)*rhoinv*((rho*uold(i,j,1)*dvdx) + (rho*uold(i,j,2)*dvdy) + dpdy - rmu*d2vdx2 - rmu*d2vdy2 - s(i,j,2));
         }
         
     }
@@ -1307,17 +1311,34 @@ void check_iterative_convergence(int n, Array3& u, Array3& uold, Array2& dt, dou
     /* Monitor with following eqution*/
     /* rho*(u(i,j,k)-uold(i,j,k)) / dt */
     /* Residual = max(Residual, _________ ) */
+    /* "Monitor iterative residuals by plugging into rho* (u(n+1)-n(n)) / dt "*/
+
+
+    /* res: current residual */
+    /* resinit: previous residual*/
+    /* ninit: counter */
+    /* rtime: */
+    /* What to use dtmin for? */
 
     for(i=0; i<imax;i++)
     {
         for(j=0;j<jmax;j++)
         {
-            for(k=0;k<3;k++)
+            for(k=0;k<neq;k++)
             {
-                
+                res[k] = res[k] + pow(((u(i,j,k) - uold(i,j,k)) / dt(i,j)),2);
             }
         }
     }
+
+    for(k=0;k<neq;k++)
+    {
+        res[k] = sqrt(res[k] / (imax*jmax));
+        res[k] = res[k] / resinit[k];
+    }
+    
+    conv = max(res[0],res[1],res[2]);
+    
 
 
 
@@ -1359,11 +1380,11 @@ void Discretization_Error_Norms( Array3& u )
     if(imms==1)
     {
 
-/* !************************************************************** */
-/* !************ADD CODING HERE FOR INTRO CFD STUDENTS************ */
-/* !************************************************************** */
+    /* !************************************************************** */
+    /* !************ADD CODING HERE FOR INTRO CFD STUDENTS************ */
+    /* !************************************************************** */
 
-
+    
 
 
     }
