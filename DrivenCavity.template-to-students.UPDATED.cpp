@@ -1030,6 +1030,8 @@ void Compute_Artificial_Viscosity( Array3& u, Array2& viscx, Array2& viscy )
         d4pdx4 = (u(i-3,j,0) - 4*u(i-2,j,0) + 6*u(i-1,j,0) - 4*u(i,j,0) + u(i+1,j,0))/dx;
         d4pdy4 = (u(i,j-2,0) - 4*u(i,j-1,0) + 6*u(i,j,0) - 4*u(i,j+1,0) + u(i,j+2,0))/dy;
 
+        viscx(i,j) = (d4pdx4)*(-abs(lambda_x)*Cx*(dx*dx*dx))/beta2;
+        viscy(i,j) = (d4pdy4)*(-abs(lambda_y)*Cy*(dy*dy*dy))/beta2;
         /*  VISC HERE */
     }
     
@@ -1044,6 +1046,9 @@ void Compute_Artificial_Viscosity( Array3& u, Array2& viscx, Array2& viscy )
         j = jmax-2;
         d4pdx4 = (u(i-2,j,0) - 4*u(i-1,j,0) + 6*u(i,j,0) - 4*u(i+1,j,0) + u(i+2,j,0))/dx;
         d4pdy4 = (u(i,j-3,0) - 4*u(i,j-2,0) + 6*u(i,j-1,0) - 4*u(i,j,0) + u(i,j+1,0))/dy;
+
+        viscx(i,j) = (d4pdx4)*(-abs(lambda_x)*Cx*(dx*dx*dx))/beta2;
+        viscy(i,j) = (d4pdy4)*(-abs(lambda_y)*Cy*(dy*dy*dy))/beta2;
         /* VISC HERE */
     }
 
