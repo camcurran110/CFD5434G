@@ -1343,7 +1343,7 @@ void check_iterative_convergence(int n, Array3& u, Array3& uold, Array2& dt, dou
     }
     
     double first = std::max(res[0],res[1]);
-    
+    /**/
     conv = std::max(first,res[2]);
     
 
