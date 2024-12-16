@@ -1342,7 +1342,9 @@ void check_iterative_convergence(int n, Array3& u, Array3& uold, Array2& dt, dou
         res[k] = res[k] / resinit[k];
     }
     
-    conv = max(res[0],res[1],res[2]);
+    double first = std::max(res[0],res[1]);
+    
+    conv = std::max(first,res[2]);
     
 
 
