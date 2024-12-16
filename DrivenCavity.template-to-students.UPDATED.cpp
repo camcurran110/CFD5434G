@@ -42,8 +42,8 @@ using namespace std;
 
   const int nmax = 500000;             /* Maximum number of iterations */
   const int iterout = 5000;             /* Number of time steps between solution output */
-  const int imms = 1;                   /* Manufactured solution flag: = 1 for manuf. sol., = 0 otherwise */
-  const int isgs = 1;                   /* Symmetric Gauss-Seidel  flag: = 1 for SGS, = 0 for point Jacobi */
+  const int imms = 0;                   /* Manufactured solution flag: = 1 for manuf. sol., = 0 otherwise */
+  const int isgs = 0;                   /* Symmetric Gauss-Seidel  flag: = 1 for SGS, = 0 for point Jacobi */
   const int irstr = 0;                  /* Restart flag: = 1 for restart (file 'restart.in', = 0 for initial run */
   const int ipgorder = 0;               /* Order of pressure gradient: 0 = 2nd, 1 = 3rd (not needed) */
   const int lim = 0;                    /* variable to be used as the limiter sensor (= 0 for pressure) */
@@ -892,11 +892,11 @@ void compute_time_step( Array3& u, Array2& dt, double& dtmin )
         for( j=1; j<jmax-1;j++)
         {
             /* double nu = (rmu/rho); */
-            dtvisc = (dx*dy)/(4*nu); /* Should I pull this out of the loop? */
+            dtvisc = (dx*dy)/(4.0*nu); /* Should I pull this out of the loop? */
             uvel2 = (u(i,j,1)*u(i,j,1)) + u(i,j,2)*u(i,j,2);
             beta2 = max((uvel2),(rkappa*vel2ref));
-            lambda_x = (1/2)*(abs(u(i,j,1)) + sqrt(u(i,j,1)*u(i,j,1) + 4*beta2)); /* Should I be using "half"? */
-            lambda_y = (1/2)*(abs(u(i,j,2)) + sqrt(u(i,j,2)*u(i,j,2) + 4*beta2));
+            lambda_x = (1.0/2.0)*(abs(u(i,j,1)) + sqrt(u(i,j,1)*u(i,j,1) + 4*beta2)); /* Should I be using "half"? */
+            lambda_y = (1.0/2.0)*(abs(u(i,j,2)) + sqrt(u(i,j,2)*u(i,j,2) + 4*beta2));
             lambda_max = max(lambda_x,lambda_y);
             dtconv = min(dx,dy)/abs(lambda_max); /* Convective stability limit */
 
@@ -1231,9 +1231,9 @@ void point_Jacobi( Array3& u, Array3& uold, Array2& viscx, Array2& viscy, Array2
             dpdx = (uold(i+1,j,0) - uold(i-1,j,0)) / (2*dx);
             dudx = (uold(i+1,j,1) - uold(i-1,j,1)) / (2*dx);
             dvdx = (uold(i+1,j,2) - uold(i-1,j,2)) / (2*dx);
-            dpdy = (uold(i,j+1,0) - uold(i,j+1,0)) / (2*dy);
-            dudy = (uold(i,j+1,1) - uold(i,j+1,1)) / (2*dy);
-            dvdy = (uold(i,j+1,2) - uold(i,j+1,2)) / (2*dy);
+            dpdy = (uold(i,j+1,0) - uold(i,j-1,0)) / (2*dy);
+            dudy = (uold(i,j+1,1) - uold(i,j-1,1)) / (2*dy);
+            dvdy = (uold(i,j+1,2) - uold(i,j-1,2)) / (2*dy);
             d2udx2 = (uold(i+1,j,1)  - 2*uold(i,j,1) + uold(i-1,j,1)) / (dx*dx);
             d2vdx2 = (uold(i+1,j,2)  - 2*uold(i,j,2) + uold(i-1,j,2)) / (dx*dx);
             d2udy2 = (uold(i,j+1,1)  - 2*uold(i,j,1) + uold(i,j-1,1)) / (dy*dy);
