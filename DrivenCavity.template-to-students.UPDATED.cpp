@@ -901,13 +901,26 @@ void compute_time_step( Array3& u, Array2& dt, double& dtmin )
             dtconv = min(dx,dy)/abs(lambda_max); /* Convective stability limit */
 
             /* To modify*/
+            //printf("dtvisc: %f, dtconv: %f\n", dtvisc, dtconv);
             dt(i,j) = cfl*min(dtvisc,dtconv); /* This should be dt_d and dt_c*/
+            //printf("dt: %f\n", dt(i, j));
             /* (Diffusive and convective)*/
             /* dtmin = min(dt(i,j),dtmin); */
             dtmin = min(dtmin,dt(i,j));
             
         }
         
+    }
+
+    for (int i=0; i<imax; i++)
+    {
+        dt(i,0)        = dtmin;
+        dt(i,jmax-1)   = dtmin;
+    }
+    for (int j=0; j<jmax; j++)
+    {
+        dt(0,j)        = dtmin;
+        dt(imax-1,j)   = dtmin;
     }
         
 
@@ -1158,9 +1171,9 @@ void SGS_backward_sweep( Array3& u, Array2& viscx, Array2& viscy, Array2& dt, Ar
 
     /* Same as above but reversed loops?? */
 
-    for(i=imax-1; i>0;i--)
+    for(i=imax-2; i>0;i--)
     {
-        for(j=jmax-1;j>0;j--)
+        for(j=jmax-2;j>0;j--)
         {
             dpdx = (u(i+1,j,0) - u(i-1,j,0)) / (2*dx);
             dudx = (u(i+1,j,1) - u(i-1,j,1)) / (2*dx);
@@ -1325,26 +1338,30 @@ void check_iterative_convergence(int n, Array3& u, Array3& uold, Array2& dt, dou
     /* rtime: */
     /* What to use dtmin for? */
 
-    for(i=0; i<imax;i++)
+    for (int k=0; k<neq; k++)
+        res[k] = 0.0;
+
+    // Only use interior points to avoid potential issues at boundaries
+    for (int i=1; i<imax-1; i++)
     {
-        for(j=0;j<jmax;j++)
+        for (int j=1; j<jmax-1; j++)
         {
-            for(k=0;k<neq;k++)
+            for (int k=0; k<neq; k++)
             {
-                res[k] = res[k] + pow(((u(i,j,k) - uold(i,j,k)) / dt(i,j)),2);
+                double diff = (u(i,j,k)-uold(i,j,k))/dt(i,j);
+                res[k] += diff*diff;
             }
         }
     }
 
-    for(k=0;k<neq;k++)
+    for(int k=0; k<neq; k++)
     {
-        res[k] = sqrt(res[k] / (imax*jmax));
-        res[k] = res[k] / resinit[k];
+        res[k] = sqrt(res[k]/((imax-2)*(jmax-2))); // Normalize by interior count
+        res[k] = res[k]/resinit[k];
     }
-    
-    double first = std::max(res[0],res[1]);
-    /**/
-    conv = std::max(first,res[2]);
+
+    double first = max(res[0],res[1]);
+    conv = max(first,res[2]);
     
 
 
